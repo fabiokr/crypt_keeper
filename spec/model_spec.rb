@@ -20,7 +20,8 @@ module CryptKeeper
 
         it "should raise an exception with wrong field type" do
           msg = ":name must be of type 'text' to be used for encryption"
-          expect { subject.crypt_keeper :name, encryptor: :fake_encryptor }.to raise_error(ArgumentError, msg)
+          subject.crypt_keeper :name, encryptor: :fake_encryptor
+          expect { subject.new.save }.to raise_error(ArgumentError, msg)
         end
       end
 

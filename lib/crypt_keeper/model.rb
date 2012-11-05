@@ -25,6 +25,13 @@ module CryptKeeper
       end
     end
 
+    # Private: Run each crypt_keeper_fields through ensure_field_is_encryptable!
+    def enforce_column_types_callback
+      crypt_keeper_fields.each do |field|
+        self.class.ensure_field_is_encryptable! field
+      end
+    end
+
     module ClassMethods
       # Public: Setup fields for encryption
       #
@@ -62,6 +69,14 @@ module CryptKeeper
         encryptor.decrypt value
       end
 
+      # Public: Ensures that field is of type text. This prevents
+      # encrypted data from being truncated
+      def ensure_field_is_encryptable!(field)
+        unless columns_hash["#{field}"].type == :text
+          raise ArgumentError, ":#{field} must be of type 'text' to be used for encryption"
+        end
+      end
+
       private
 
       # Private: An instance of the encryptor class
@@ -86,18 +101,7 @@ module CryptKeeper
         after_save :decrypt_callback
         after_find :decrypt_callback
         before_save :encrypt_callback
-
-        crypt_keeper_fields.each do |field|
-          ensure_field_is_encryptable! field
-        end
-      end
-
-      # Private: Ensures that each field is of type text. This prevents
-      # encrypted data from being truncated
-      def ensure_field_is_encryptable!(field)
-        unless columns_hash["#{field}"].type == :text
-          raise ArgumentError, ":#{field} must be of type 'text' to be used for encryption"
-        end
+        before_save :enforce_column_types_callback
       end
     end
   end
