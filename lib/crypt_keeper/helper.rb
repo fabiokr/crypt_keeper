@@ -4,9 +4,16 @@ module CryptKeeper
       private
 
       # Private: Sanitize an sql query and then execute it
-      def escape_and_execute_sql(query)
-        query = ::ActiveRecord::Base.send :sanitize_sql_array, query
-        ::ActiveRecord::Base.connection.execute(query).first
+      #
+      # query - the prepared statement query
+      # binds - a hash of binds of values for the prepared statement. Example:
+      #         { "value" => "thevalue", "key" => "thekey" }
+      def escape_and_execute_sql(query, binds)
+        prepared_statement_binds = binds.map do |k, v|
+          ActiveRecord::Relation::QueryAttribute.new(k, v, ActiveModel::Type::String.new)
+        end
+
+        ::ActiveRecord::Base.connection.exec_query(query, nil, prepared_statement_binds).first
       end
     end
 

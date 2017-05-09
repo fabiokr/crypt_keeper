@@ -25,14 +25,21 @@ module CryptKeeper
       #
       # Returns an encrypted string
       def encrypt(value)
-        escape_and_execute_sql(["SELECT pgp_sym_encrypt(?, ?, ?)", value.to_s, key, pgcrypto_options])['pgp_sym_encrypt']
+        escape_and_execute_sql("SELECT pgp_sym_encrypt($1, $2, $3)",
+          "value" => value.to_s,
+          "key" => key,
+          "options" => pgcrypto_options
+        )['pgp_sym_encrypt']
       end
 
       # Public: Decrypts a string
       #
       # Returns a plaintext string
       def decrypt(value)
-        escape_and_execute_sql(["SELECT pgp_sym_decrypt(?, ?)", value, key])['pgp_sym_decrypt']
+        escape_and_execute_sql("SELECT pgp_sym_decrypt($1, $2)",
+          "value" => value,
+          "key" => key,
+        )['pgp_sym_decrypt']
       end
 
       def search(records, field, criteria)
